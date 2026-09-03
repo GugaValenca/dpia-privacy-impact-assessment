@@ -1,0 +1,57 @@
+{% extends "dpia/base.html" %}
+{% load dpia_extras %}
+
+{% block title %}DPIA-Privacy-Impact-Assessment — Step 4{% endblock %}
+
+{% block content %}
+<section class="wizard">
+    {% wizard_steps step %}
+    <h1>Add mitigation measures</h1>
+    {% if risk_factors %}
+    <p class="wizard__intro">
+        For each selected risk factor, optionally document a mitigation and
+        how much it reduces that factor's severity in the final score.
+    </p>
+    <form method="post" class="wizard-form" novalidate>
+        {% csrf_token %}
+        {% for row in form.rows %}
+        <fieldset class="mitigation-row">
+            <legend>
+                {{ row.factor.name }}
+                <span class="badge badge--weight">weight {{ row.factor.severity_weight }}</span>
+            </legend>
+            <label class="mitigation-row__toggle">
+                {{ row.mitigate }} {{ row.mitigate.label }}
+            </label>
+            <div class="form-field {% if row.description.errors %}form-field--error{% endif %}">
+                <label for="{{ row.description.id_for_label }}">{{ row.description.label }}</label>
+                {{ row.description }}
+                {% for error in row.description.errors %}<p class="form-field__error">{{ error }}</p>{% endfor %}
+            </div>
+            <div class="form-field {% if row.reduction.errors %}form-field--error{% endif %}">
+                <label for="{{ row.reduction.id_for_label }}">{{ row.reduction.label }}</label>
+                {{ row.reduction }}
+                {% for error in row.reduction.errors %}<p class="form-field__error">{{ error }}</p>{% endfor %}
+            </div>
+        </fieldset>
+        {% endfor %}
+        <div class="wizard-form__actions">
+            <a href="{% url 'dpia:wizard_step3' %}" class="btn btn--ghost">Back</a>
+            <button type="submit" class="btn btn--primary">Continue</button>
+        </div>
+    </form>
+    {% else %}
+    <p class="wizard__intro">
+        No risk factors were selected in step 3, so there's nothing to
+        mitigate. You can go back and select some, or continue to the review.
+    </p>
+    <form method="post" class="wizard-form">
+        {% csrf_token %}
+        <div class="wizard-form__actions">
+            <a href="{% url 'dpia:wizard_step3' %}" class="btn btn--ghost">Back</a>
+            <button type="submit" class="btn btn--primary">Continue</button>
+        </div>
+    </form>
+    {% endif %}
+</section>
+{% endblock %}

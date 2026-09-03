@@ -1,0 +1,39 @@
+{% extends "dpia/base.html" %}
+{% load dpia_extras %}
+
+{% block title %}DPIA-Privacy-Impact-Assessment — Step 3{% endblock %}
+
+{% block content %}
+<section class="wizard">
+    {% wizard_steps step %}
+    <h1>Select applicable risk factors</h1>
+    <p class="wizard__intro">
+        Check every risk factor that applies to this processing activity. Each
+        one carries a severity weight that feeds into the final risk score —
+        selecting none is a valid outcome if nothing in the catalog applies.
+    </p>
+    <form method="post" class="wizard-form" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+        <div class="form-field form-field--error">
+            {% for error in form.non_field_errors %}<p class="form-field__error">{{ error }}</p>{% endfor %}
+        </div>
+        {% endif %}
+        <fieldset class="risk-factor-picker">
+            <legend class="sr-only">Applicable risk factors</legend>
+            {% for checkbox in form.risk_factors %}
+            <label class="risk-factor-picker__item">
+                {{ checkbox.tag }}
+                <span class="risk-factor-picker__name">{{ checkbox.choice_label }}</span>
+                <span class="badge badge--weight">weight {{ checkbox.data.value.instance.severity_weight }}</span>
+                <span class="risk-factor-picker__description">{{ checkbox.data.value.instance.description }}</span>
+            </label>
+            {% endfor %}
+        </fieldset>
+        <div class="wizard-form__actions">
+            <a href="{% url 'dpia:wizard_step2' %}" class="btn btn--ghost">Back</a>
+            <button type="submit" class="btn btn--primary">Continue</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "dpia/base.html" %}
+
+{% block title %}DPIA-Privacy-Impact-Assessment — {{ assessment.project_name }}{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div>
+        <h1>{{ assessment.project_name }}</h1>
+        <p class="page-header__subtitle">{{ assessment.description }}</p>
+    </div>
+    <div class="detail-actions">
+        <span class="badge badge--status badge--status-{{ assessment.status }}">{{ assessment.get_status_display }}</span>
+        <a href="{% url 'dpia:export_pdf' assessment.pk %}" class="btn btn--export">⬇ Export PDF</a>
+    </div>
+</section>
+
+<article class="review-card">
+    <h2>1. Processing description</h2>
+    <dl class="review-dl">
+        <dt>Nature</dt><dd>{{ assessment.processing_description.nature }}</dd>
+        <dt>Scope</dt><dd>{{ assessment.processing_description.scope }}</dd>
+        <dt>Context</dt><dd>{{ assessment.processing_description.context }}</dd>
+        <dt>Purpose</dt><dd>{{ assessment.processing_description.purpose }}</dd>
+    </dl>
+</article>
+
+<article class="review-card">
+    <h2>2. Necessity &amp; proportionality</h2>
+    <dl class="review-dl">
+        <dt>Necessity</dt><dd>{{ assessment.necessity_proportionality.necessity_justification }}</dd>
+        <dt>Proportionality</dt><dd>{{ assessment.necessity_proportionality.proportionality_justification }}</dd>
+        <dt>Alternatives considered</dt><dd>{{ assessment.necessity_proportionality.alternatives_considered|default:"None documented." }}</dd>
+        <dt>Data minimization measures</dt><dd>{{ assessment.necessity_proportionality.data_minimization_measures|default:"None documented." }}</dd>
+    </dl>
+</article>
+
+<article class="review-card">
+    <h2>3 &amp; 4. Risk factors &amp; mitigations</h2>
+    {% if assessment.risk_factors.all %}
+    <table class="review-table">
+        <thead>
+            <tr><th>Risk factor</th><th>Severity</th><th>Mitigations</th></tr>
+        </thead>
+        <tbody>
+            {% for factor in assessment.risk_factors.all %}
+            <tr>
+                <td>{{ factor.name }}</td>
+                <td>{{ factor.severity_weight }}</td>
+                <td>
+                    {% for mitigation in assessment.mitigation_measures.all %}
+                        {% if mitigation.risk_factor_id == factor.id %}
+                        <p>{{ mitigation.description }} <span class="muted">(-{{ mitigation.reduction_weight }})</span></p>
+                        {% endif %}
+                    {% empty %}
+                        <span class="muted">None documented</span>
+                    {% endfor %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="muted">No risk factors were identified for this processing activity.</p>
+    {% endif %}
+</article>
+
+<article class="review-card review-card--score">
+    <h2>5. Risk score &amp; recommendation</h2>
+    <div class="risk-meter risk-meter--{{ risk.risk_level.value }}">
+        <span class="risk-meter__icon" aria-hidden="true">
+            {% if risk.risk_level.value == "low" %}✓{% elif risk.risk_level.value == "medium" %}▲{% else %}⛔{% endif %}
+        </span>
+        <span class="risk-meter__label">{{ risk.risk_level.label }} risk</span>
+        <span class="risk-meter__score">mitigated score {{ risk.mitigated_score }} (raw {{ risk.raw_score }})</span>
+    </div>
+    <p class="recommendation">{{ risk.recommendation }}</p>
+    <p class="disclaimer">
+        This is a simplified internal risk model inspired by common DPIA
+        practice, not an official regulatory scoring system. This assessment
+        is a simulation for portfolio/demonstration purposes and does not
+        constitute legal advice.
+    </p>
+</article>
+{% endblock %}

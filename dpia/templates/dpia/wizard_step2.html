@@ -1,0 +1,23 @@
+{% extends "dpia/base.html" %}
+{% load dpia_extras %}
+
+{% block title %}DPIA-Privacy-Impact-Assessment — Step 2{% endblock %}
+
+{% block content %}
+<section class="wizard">
+    {% wizard_steps step %}
+    <h1>Assess necessity &amp; proportionality</h1>
+    <p class="wizard__intro">
+        Why this processing is necessary to reach the stated purpose, and why
+        the amount and type of data involved is proportionate to it.
+    </p>
+    <form method="post" class="wizard-form" novalidate>
+        {% csrf_token %}
+        {% include "dpia/_form_fields.html" %}
+        <div class="wizard-form__actions">
+            <a href="{% url 'dpia:wizard_step1' %}" class="btn btn--ghost">Back</a>
+            <button type="submit" class="btn btn--primary">Continue</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

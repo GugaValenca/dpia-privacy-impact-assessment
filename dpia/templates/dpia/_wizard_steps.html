@@ -1,0 +1,19 @@
+{% comment %}
+Step indicator shared by all 5 wizard templates. Takes `step` (1-5) from
+the view's context. Completed/current/upcoming are styled distinctly so
+progress is clear without relying on color alone (each also carries a
+different label state via aria-current).
+{% endcomment %}
+<ol class="wizard-steps" aria-label="Assessment steps">
+    {% for label in labels %}
+    <li class="wizard-steps__item
+        {% if forloop.counter < step %}wizard-steps__item--done{% endif %}
+        {% if forloop.counter == step %}wizard-steps__item--current{% endif %}"
+        {% if forloop.counter == step %}aria-current="step"{% endif %}>
+        <span class="wizard-steps__number">
+            {% if forloop.counter < step %}✓{% else %}{{ forloop.counter }}{% endif %}
+        </span>
+        <span class="wizard-steps__label">{{ label }}</span>
+    </li>
+    {% endfor %}
+</ol>

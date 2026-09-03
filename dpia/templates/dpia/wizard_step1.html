@@ -1,0 +1,23 @@
+{% extends "dpia/base.html" %}
+{% load dpia_extras %}
+
+{% block title %}DPIA-Privacy-Impact-Assessment — Step 1{% endblock %}
+
+{% block content %}
+<section class="wizard">
+    {% wizard_steps step %}
+    <h1>Describe the processing</h1>
+    <p class="wizard__intro">
+        What's being proposed, and what does the processing actually involve?
+        This becomes section 1 of the final report.
+    </p>
+    <form method="post" class="wizard-form" novalidate>
+        {% csrf_token %}
+        {% include "dpia/_form_fields.html" %}
+        <div class="wizard-form__actions">
+            <a href="{% url 'dpia:wizard_cancel' %}" class="btn btn--ghost">Cancel</a>
+            <button type="submit" class="btn btn--primary">Continue</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

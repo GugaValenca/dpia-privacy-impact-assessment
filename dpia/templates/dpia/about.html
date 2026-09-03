@@ -1,0 +1,101 @@
+{% extends "dpia/base.html" %}
+
+{% block title %}DPIA-Privacy-Impact-Assessment — About{% endblock %}
+
+{% block content %}
+<section class="about">
+    <h1>About this project</h1>
+
+    <article class="about__card">
+        <h2>What this is</h2>
+        <p>
+            DPIA-Privacy-Impact-Assessment is a guided Data Protection Impact
+            Assessment tool: a 5-step wizard walks through describing a
+            proposed processing activity, judging its necessity and
+            proportionality, flagging applicable risk factors, and documenting
+            mitigations, ending in a calculated risk score, a recommendation,
+            and an exportable PDF report.
+        </p>
+    </article>
+
+    <article class="about__card">
+        <h2>Why it exists</h2>
+        <p>
+            This is <strong>Project 3</strong> of a four-project portfolio
+            built while transitioning from a legal career (data protection /
+            legal team leadership in Brazil) into a Data Governance & Privacy
+            Analyst role in the US. It's the forward-looking counterpart to
+            <a href="https://github.com/GugaValenca/data-mapping-ropa" target="_blank" rel="noopener">Project 2 (Data-Mapping-ROPA)</a>:
+            that project records processing activities already running,
+            while this one assesses a new one <em>before</em> it launches —
+            the same NimbusCart e-commerce scenario, seen from the other side
+            of a launch decision. Project 1,
+            <a href="https://github.com/GugaValenca/lgpd-gdpr-ccpa-comparative-analysis" target="_blank" rel="noopener">LGPD-GDPR-CCPA-Comparative-Analysis</a>,
+            compares the underlying legal frameworks side by side.
+        </p>
+    </article>
+
+    <article class="about__card">
+        <h2>How it works</h2>
+        <ul class="about__list">
+            <li>A 5-step wizard collects the processing description, necessity/proportionality judgment, applicable risk factors, and documented mitigations, keeping state in the session until the final step is confirmed.</li>
+            <li>Each selected risk factor contributes a severity weight; each mitigation reduces its associated factor's contribution. The totals classify the assessment as Low, Medium, or High risk.</li>
+            <li>The risk level drives a recommendation (e.g. High → recommend legal/DPO consultation before launch), shown with a disclaimer on every screen it appears.</li>
+            <li>Every assessment can be exported as an audit-structured PDF at any time, and the dashboard lists all past assessments with status and risk level at a glance.</li>
+        </ul>
+    </article>
+
+    <article class="about__card">
+        <h2>Built with</h2>
+        <p>
+            Django · SQLite (dev) · Django templates + vanilla CSS/JS ·
+            ReportLab (PDF) · Django's built-in test runner ·
+            session-backed multi-step form state
+        </p>
+        <p>
+            Built with Django to maintain a consistent stack across this
+            portfolio's four projects, rather than picking a marginally
+            leaner framework for any one of them.
+        </p>
+    </article>
+
+    <article class="about__card about__card--disclaimer">
+        <h2>Scope &amp; disclaimer</h2>
+        <p>
+            All company, project, and scenario details in the sample data are
+            fictional. The risk-scoring model and risk factor catalog are a
+            <strong>simplified internal risk model inspired by common DPIA
+            practice</strong> (loosely mirroring the shape of GDPR Art. 35
+            guidance and CPRA risk-assessment practice, in structure only) —
+            this is <strong>not an official regulatory scoring system</strong>.
+        </p>
+        <p>
+            Every recommendation this tool produces, on screen or in an
+            exported PDF, is a simulation for portfolio/demonstration
+            purposes and <strong>does not constitute legal advice</strong>.
+            Wherever a real legal citation, threshold, or deadline would
+            normally belong, the source code carries a
+            <code># TODO: VERIFY exact legal citation against official source</code>
+            comment instead of a stated-as-fact figure — see
+            <code>dpia/models.py</code> and
+            <code>dpia/management/commands/seed_dpia.py</code>.
+        </p>
+    </article>
+
+    <article class="about__card">
+        <h2>About the author</h2>
+        <p>
+            Gustavo Valença is a Brazilian-trained lawyer with legal team
+            leadership experience, working across Python/Django development
+            and data privacy law (LGPD, GDPR, CCPA). This project reflects
+            that combination directly: a genuine DPIA workflow's judgment
+            calls and risk criteria, modeled as a structured, tested Django
+            application rather than a static checklist.
+        </p>
+        <p class="about__links">
+            <a href="https://github.com/GugaValenca" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.linkedin.com/in/gugavalenca/" target="_blank" rel="noopener">LinkedIn</a>
+        </p>
+    </article>
+</section>
+{% endblock %}

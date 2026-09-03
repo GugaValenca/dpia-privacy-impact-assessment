@@ -1,0 +1,90 @@
+{% extends "dpia/base.html" %}
+{% load dpia_extras %}
+
+{% block title %}DPIA-Privacy-Impact-Assessment — Review{% endblock %}
+
+{% block content %}
+<section class="wizard">
+    {% wizard_steps step %}
+    <h1>Review &amp; risk score</h1>
+    <p class="wizard__intro">
+        Everything below is what will be saved. Go back to any earlier step to
+        change something, or confirm to save the assessment.
+    </p>
+
+    <article class="review-card">
+        <h2>{{ data.processing.project_name }}</h2>
+        <p>{{ data.processing.description }}</p>
+    </article>
+
+    <article class="review-card">
+        <h2>1. Processing description</h2>
+        <dl class="review-dl">
+            <dt>Nature</dt><dd>{{ data.processing.nature }}</dd>
+            <dt>Scope</dt><dd>{{ data.processing.scope }}</dd>
+            <dt>Context</dt><dd>{{ data.processing.context }}</dd>
+            <dt>Purpose</dt><dd>{{ data.processing.purpose }}</dd>
+        </dl>
+    </article>
+
+    <article class="review-card">
+        <h2>2. Necessity &amp; proportionality</h2>
+        <dl class="review-dl">
+            <dt>Necessity</dt><dd>{{ data.necessity.necessity_justification }}</dd>
+            <dt>Proportionality</dt><dd>{{ data.necessity.proportionality_justification }}</dd>
+            <dt>Alternatives considered</dt><dd>{{ data.necessity.alternatives_considered|default:"None documented." }}</dd>
+            <dt>Data minimization measures</dt><dd>{{ data.necessity.data_minimization_measures|default:"None documented." }}</dd>
+        </dl>
+    </article>
+
+    <article class="review-card">
+        <h2>3 &amp; 4. Risk factors &amp; mitigations</h2>
+        {% if review_rows %}
+        <table class="review-table">
+            <thead>
+                <tr><th>Risk factor</th><th>Severity</th><th>Mitigation</th><th>Impact</th></tr>
+            </thead>
+            <tbody>
+                {% for row in review_rows %}
+                <tr>
+                    <td>{{ row.factor.name }}</td>
+                    <td>{{ row.factor.severity_weight }}</td>
+                    <td>{% if row.mitigation %}{{ row.mitigation.description }}{% else %}<span class="muted">None documented</span>{% endif %}</td>
+                    <td>{% if row.mitigation %}-{{ row.mitigation.reduction_weight }}{% else %}<span class="muted">—</span>{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="muted">No risk factors were selected for this processing activity.</p>
+        {% endif %}
+    </article>
+
+    <article class="review-card review-card--score">
+        <h2>5. Risk score &amp; recommendation</h2>
+        <div class="risk-meter risk-meter--{{ risk.risk_level.value }}">
+            <span class="risk-meter__icon" aria-hidden="true">
+                {% if risk.risk_level.value == "low" %}✓{% elif risk.risk_level.value == "medium" %}▲{% else %}⛔{% endif %}
+            </span>
+            <span class="risk-meter__label">{{ risk.risk_level.label }} risk</span>
+            <span class="risk-meter__score">mitigated score {{ risk.mitigated_score }} (raw {{ risk.raw_score }})</span>
+        </div>
+        <p class="recommendation">{{ risk.recommendation }}</p>
+        <p class="disclaimer">
+            This is a simplified internal risk model inspired by common DPIA
+            practice, not an official regulatory scoring system. This
+            assessment is a simulation for portfolio/demonstration purposes
+            and does not constitute legal advice.
+        </p>
+    </article>
+
+    <form method="post" class="wizard-form">
+        {% csrf_token %}
+        <div class="wizard-form__actions">
+            <a href="{% url 'dpia:wizard_step4' %}" class="btn btn--ghost">Back</a>
+            <a href="{% url 'dpia:wizard_cancel' %}" class="btn btn--ghost">Cancel</a>
+            <button type="submit" class="btn btn--primary">Confirm &amp; save assessment</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}DPIA-Privacy-Impact-Assessment{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header class="site-header">
+        <div class="site-header__inner">
+            <a class="site-header__brand" href="{% url 'dpia:dashboard' %}">
+                <span class="site-header__logo" aria-hidden="true">◈</span>
+                DPIA-Privacy-Impact-Assessment
+            </a>
+            <nav class="site-header__nav">
+                <a href="{% url 'dpia:dashboard' %}">Dashboard</a>
+                <a href="{% url 'dpia:wizard_step1' %}">New Assessment</a>
+                <a href="{% url 'dpia:about' %}">About</a>
+                <a href="/admin/" target="_blank" rel="noopener">Admin</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="page">
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li class="messages__item messages__item--{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <p>
+            DPIA-Privacy-Impact-Assessment &mdash; a simplified internal risk model
+            inspired by common DPIA practice, not an official regulatory scoring
+            system. Not legal advice; see the <a href="{% url 'dpia:about' %}">About</a> page.
+        </p>
+    </footer>
+</body>
+</html>

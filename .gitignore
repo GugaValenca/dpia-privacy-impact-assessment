@@ -9,6 +9,8 @@ env/
 .env
 staticfiles/
 
+.vercel
+
 # PDFs are generated at request time, never checked in
 *.pdf
 

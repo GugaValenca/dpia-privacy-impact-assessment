@@ -40,14 +40,23 @@ ALLOWED_HOSTS = [
     h.strip() for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",") if h.strip()
 ]
 
-# Render sets RENDER_EXTERNAL_HOSTNAME to the service's public hostname at
-# runtime — it isn't known in advance, so it can't just go in
-# DJANGO_ALLOWED_HOSTS ahead of time. Trust it automatically when present;
-# a custom domain still needs to be added via DJANGO_ALLOWED_HOSTS.
-_render_hostname = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
-if _render_hostname:
-    ALLOWED_HOSTS.append(_render_hostname)
-    CSRF_TRUSTED_ORIGINS = [f"https://{_render_hostname}"]
+# Vercel sets these at runtime — VERCEL_URL to the *current deployment's*
+# unique hostname (a new one every deploy), VERCEL_PROJECT_PRODUCTION_URL
+# to the stable production alias (e.g. dpia-privacy-impact-assessment.vercel.app).
+# Neither is known in advance, so they can't just go in
+# DJANGO_ALLOWED_HOSTS — trust both automatically when present. A custom
+# domain still needs to be added via DJANGO_ALLOWED_HOSTS.
+_vercel_hosts = [
+    h
+    for h in (
+        os.environ.get("VERCEL_URL"),
+        os.environ.get("VERCEL_PROJECT_PRODUCTION_URL"),
+    )
+    if h
+]
+if _vercel_hosts:
+    ALLOWED_HOSTS.extend(_vercel_hosts)
+    CSRF_TRUSTED_ORIGINS = [f"https://{h}" for h in _vercel_hosts]
 else:
     CSRF_TRUSTED_ORIGINS = [
         o.strip()
@@ -55,18 +64,19 @@ else:
         if o.strip()
     ]
 
-# Render (like most PaaS hosts) terminates TLS at the edge and forwards
-# requests to the app over plain HTTP with this header set — without it
-# Django can't tell the request was actually HTTPS, which breaks CSRF and
-# secure-cookie checks.
-if os.environ.get("RENDER"):
+# Vercel (like most serverless/PaaS hosts) terminates TLS at the edge and
+# forwards requests to the app over plain HTTP with this header set —
+# without it Django can't tell the request was actually HTTPS, which
+# breaks CSRF and secure-cookie checks.
+if os.environ.get("VERCEL"):
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-# Belt-and-suspenders production hardening, checked against
-# `manage.py check --deploy`. Render already forces HTTPS at the edge for
-# every service, so none of this is filling a gap there today — it's here
-# so the app stays correctly configured if it's ever hosted somewhere that
-# doesn't do that for you.
+# Belt-and-suspenders production hardening. Vercel already forces HTTPS
+# and sends HSTS/X-Content-Type-Options/X-Frame-Options at the edge for
+# every deployment, so none of this is filling a gap there today — it's
+# here so the app is still correctly configured if it's ever hosted
+# somewhere that doesn't do that for you. `manage.py check --deploy` was
+# used to find this list.
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
@@ -90,10 +100,12 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    # Serves static files directly from the app process — this app's
-    # static payload is small enough that a separate CDN/static host
-    # would be overkill, and WhiteNoise keeps the Render deploy to a
-    # single web service with no extra infrastructure.
+    # Serves static files directly from the app process. Vercel's
+    # serverless functions have no separate static file server and no
+    # persistent disk to run `collectstatic` into ahead of time, so
+    # WhiteNoise (with WHITENOISE_USE_FINDERS below) serves them straight
+    # from the source directories on every request — simplest thing that
+    # works for this app's tiny CSS footprint.
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -127,11 +139,15 @@ WSGI_APPLICATION = "config.wsgi.application"
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
 # SQLite locally (zero setup, matches the README's local-dev instructions).
+# In production — Vercel's serverless functions have no persistent disk,
+# so a SQLite file wouldn't survive between requests — set DATABASE_URL
+# (Vercel's Postgres/Neon integration injects POSTGRES_URL automatically;
+# either name is read here) to switch to Postgres with no code changes.
 # The DPIA wizard's multi-step state lives in the database-backed session
-# store (Django's default), so it survives across requests/workers the
-# same way any other model data does — set DATABASE_URL to switch to
-# Postgres in production with no code changes.
-_database_url = os.environ.get("DATABASE_URL")
+# store (Django's default), so it survives across serverless invocations
+# the same way any other model data does — no serverless-specific
+# handling needed beyond having a real database configured.
+_database_url = os.environ.get("DATABASE_URL") or os.environ.get("POSTGRES_URL")
 
 if _database_url:
     DATABASES = {"default": dj_database_url.parse(_database_url, conn_max_age=600)}

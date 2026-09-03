@@ -77,9 +77,12 @@ time.
 - **Configuration**: `SECRET_KEY` / `DEBUG` / `ALLOWED_HOSTS` read from
   environment variables with dev-only fallbacks (`config/settings.py`,
   `.env.example`) — the codebase is deploy-ready without code changes
-- **Deployment**: [Render](https://render.com) — see **Deployment** below
-  for why this project uses a persistent web service instead of Vercel's
-  serverless runtime (Project 2's choice)
+- **Deployment**: [Vercel](https://vercel.com) (Python/WSGI runtime),
+  Postgres in production via `dj-database-url` (SQLite locally, no
+  config needed), static files served by
+  [WhiteNoise](https://whitenoise.readthedocs.io/) — same setup as
+  Project 2, for one consistent deployment story across the portfolio;
+  see **Deployment** below
 
 ## Data privacy & compliance design — read before treating this as authoritative
 
@@ -178,23 +181,24 @@ producing well-formed, section-complete, disclaimer-carrying output.
 ## Project structure
 
 ```
-config/                          Django project settings & root URLs
-dpia/                            The DPIA app
-  models.py                      RiskFactor, Assessment, ProcessingDescription,
-                                   NecessityProportionality, MitigationMeasure
-  scoring.py                     Risk-scoring logic, isolated and unit-tested
-  forms.py                       The wizard's per-step forms
-  views.py                       Wizard steps, dashboard, detail, export views
-  exports.py                     PDF export logic
-  admin.py                       Django admin configuration
-  tests.py                       Scoring, wizard-flow, view, and export tests
-  templatetags/dpia_extras.py    The step-indicator inclusion tag
+api/index.py                   WSGI entrypoint Vercel's Python runtime routes into
+vercel.json                     Vercel build/route config
+config/                        Django project settings & root URLs
+dpia/                           The DPIA app
+  models.py                     RiskFactor, Assessment, ProcessingDescription,
+                                  NecessityProportionality, MitigationMeasure
+  scoring.py                    Risk-scoring logic, isolated and unit-tested
+  forms.py                      The wizard's per-step forms
+  views.py                      Wizard steps, dashboard, detail, export views
+  exports.py                    PDF export logic
+  admin.py                      Django admin configuration
+  tests.py                      Scoring, wizard-flow, view, and export tests
+  templatetags/dpia_extras.py   The step-indicator inclusion tag
   management/commands/
-    seed_dpia.py                  Risk factor catalog + one example DPIA for NimbusCart
-  templates/dpia/                 Dashboard, about, detail, and wizard templates
+    seed_dpia.py                 Risk factor catalog + one example DPIA for NimbusCart
+  templates/dpia/                Dashboard, about, detail, and wizard templates
 static/                          CSS (shared palette with Project 2)
 .env.example                     Environment variables this app reads (copy to .env)
-render.yaml                      Render Blueprint (web service + Postgres)
 ```
 
 ## Security notes
@@ -219,48 +223,45 @@ render.yaml                      Render Blueprint (web service + Postgres)
 - `pip-audit` reports no known vulnerabilities in the pinned dependency
   set as of the last review.
 
-## Deployment (Render)
+## Deployment (Vercel)
 
-This app fits a traditional, always-on host better than a serverless
-one: it holds a relational data model plus session-backed multi-step
-wizard state, and while Django's database-backed sessions would work on
-a serverless runtime too, a persistent Django/Postgres service keeps the
-wizard's request lifecycle simple and avoids entangling it with cold
-starts. Project 2 (Data-Mapping-ROPA) used Vercel — a good fit for its
-simpler, mostly read-heavy dashboard — and Project 1 already flagged
-Render/Railway as the natural next step for a project like this one;
-this project is where that step actually gets taken.
+The app is set up to deploy on Vercel's Python runtime — `vercel.json` +
+`api/index.py` route every request into the Django WSGI app, and
+`config/settings.py` switches from SQLite to Postgres automatically
+whenever a `DATABASE_URL`/`POSTGRES_URL` is present, with no code
+changes needed between the two — the same setup as Project 2, kept
+deliberately identical so both projects deploy the same way.
 
-**Option A — Blueprint (recommended):** Render → *New* → *Blueprint*,
-point it at `GugaValenca/dpia-privacy-impact-assessment`. `render.yaml`
-provisions the web service and a free Postgres database together,
-auto-generates `DJANGO_SECRET_KEY`, and wires `DATABASE_URL` from the
-database to the web service automatically.
+Vercel's serverless functions have no persistent disk, which is the one
+thing that actually forces a change from local dev: SQLite's on-disk
+file wouldn't survive between requests there, so production needs a real
+Postgres database. The DPIA wizard's multi-step state lives in Django's
+database-backed session store (the default engine), so it survives
+across serverless invocations the same way any other model data does —
+no extra handling needed for that beyond having Postgres configured.
 
-**Option B — manual setup:**
-
-1. **Create a Postgres database**: Render dashboard → *New* → *PostgreSQL*
-   (free tier is fine for a portfolio demo). Copy its *Internal Database
-   URL*.
-2. **Create a web service**: *New* → *Web Service*, connect
-   `GugaValenca/dpia-privacy-impact-assessment`.
-   - Build command: `pip install -r requirements.txt && python manage.py migrate`
-   - Start command: `gunicorn config.wsgi:application`
-3. **Set environment variables** (Web Service → *Environment*):
+1. **Connect the repo**: in the Vercel dashboard, *Add New… → Project*,
+   import `GugaValenca/dpia-privacy-impact-assessment` from GitHub.
+2. **Add a Postgres database**: Project → *Storage* tab → *Create
+   Database* → Postgres (this provisions a Neon-backed instance and
+   injects `POSTGRES_URL` into the project's environment variables
+   automatically — nothing to copy by hand).
+3. **Set the remaining environment variables** (Project → *Settings →
+   Environment Variables*):
    - `DJANGO_SECRET_KEY` — a freshly generated one (see `.env.example`
      for the one-liner that generates it)
    - `DJANGO_DEBUG` — `False`
-   - `DATABASE_URL` — the Internal Database URL from step 1
-   - `DJANGO_ALLOWED_HOSTS` — only needed for a custom domain; Render's
-     `*.onrender.com` hostname is trusted automatically at runtime
-4. **Load the risk factor catalog and create an admin login** (one-time,
-   via Render's dashboard *Shell* tab on the web service):
+   - `DJANGO_ALLOWED_HOSTS` — only needed for a custom domain; the
+     `*.vercel.app` preview/production URL is trusted automatically
+4. **Run migrations against the production database** (one-time, and
+   again after any future model change — Vercel's build step doesn't run
+   this for you):
    ```bash
-   python manage.py seed_dpia
-   python manage.py createsuperuser
+   DATABASE_URL="<value from Vercel's Storage tab>" python manage.py migrate
+   DATABASE_URL="<same value>" python manage.py seed_dpia   # optional, sample data
+   DATABASE_URL="<same value>" python manage.py createsuperuser
    ```
-5. **Deploy**: push to the connected branch, or trigger a manual deploy
-   from the dashboard.
+5. **Deploy**: `vercel --prod`, or push to the connected branch.
 
 ## About the author
 

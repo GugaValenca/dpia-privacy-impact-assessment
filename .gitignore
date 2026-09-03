@@ -19,3 +19,5 @@ staticfiles/
 .ruff_cache/
 .coverage
 htmlcov/
+
+.env*.local

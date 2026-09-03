@@ -1,5 +1,6 @@
 # DPIA-Privacy-Impact-Assessment
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-dpia--privacy--impact--assessment.vercel.app-000000?style=flat&logo=vercel&logoColor=white)](https://dpia-privacy-impact-assessment.vercel.app)
 [![GitHub](https://img.shields.io/badge/GitHub-GugaValenca-181717?style=flat&logo=github&logoColor=white)](https://github.com/GugaValenca)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-gugavalenca-0A66C2?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/gugavalenca/)
 
@@ -262,6 +263,12 @@ no extra handling needed for that beyond having Postgres configured.
    DATABASE_URL="<same value>" python manage.py createsuperuser
    ```
 5. **Deploy**: `vercel --prod`, or push to the connected branch.
+
+Live at [dpia-privacy-impact-assessment.vercel.app](https://dpia-privacy-impact-assessment.vercel.app) —
+a Neon Postgres database provisioned through Vercel's marketplace
+integration, migrated and seeded, with the full 5-step wizard verified
+end to end against the live deployment (not just against the code
+reading right) before being written up here.
 
 ## About the author
 

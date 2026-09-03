@@ -1,3 +1,9 @@
+# This [project] table exists only so Vercel's build (which runs `uv lock`
+# the moment any pyproject.toml is present, regardless of why it's there)
+# has a valid PEP 621 project to resolve. requirements.txt stays the
+# source of truth for local dev and any pip-based host - keep this list
+# in sync with it by hand; there are few enough dependencies that a
+# drift here would show up immediately as a build failure, not silently.
 [project]
 name = "dpia-privacy-impact-assessment"
 version = "0.1.0"

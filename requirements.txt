@@ -1,0 +1,12 @@
+Django>=5.0,<7.0
+reportlab>=4.0
+django-ratelimit>=4.1
+
+# Production/deployment (Render): Postgres support, static file serving,
+# and the WSGI server Render's start command runs. Harmless locally —
+# SQLite and Django's dev static server are still used unless
+# DATABASE_URL is set.
+dj-database-url>=2.1
+psycopg[binary]>=3.1
+whitenoise>=6.6
+gunicorn>=22.0

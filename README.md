@@ -283,7 +283,7 @@ This is **Project 3** of a four-project portfolio:
 1. [LGPD-GDPR-CCPA-Comparative-Analysis](https://github.com/GugaValenca/lgpd-gdpr-ccpa-comparative-analysis) — comparing the underlying legal frameworks side by side.
 2. [Data-Mapping-ROPA](https://github.com/GugaValenca/data-mapping-ropa) — recording processing activities already running.
 3. **DPIA-Privacy-Impact-Assessment** (this project) — assessing a new one before it launches.
-4. A privacy policy generator + incident-response plan tool (planned).
+4. [Incident-Breach-Response](https://github.com/GugaValenca/incident-breach-response) — responding when something goes wrong.
 
 [![GitHub](https://img.shields.io/badge/GitHub-GugaValenca-181717?style=flat&logo=github&logoColor=white)](https://github.com/GugaValenca)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-gugavalenca-0A66C2?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/gugavalenca/)

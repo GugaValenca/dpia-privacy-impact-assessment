@@ -3,9 +3,8 @@
 Structured like an audit-ready assessment document: processing
 description, necessity & proportionality, risk factors and their
 mitigations, and the final risk score with its recommendation — the same
-sections the wizard walks through, in the same order. Mirrors Project
-2's `ropa/exports.py` export pattern for visual/UX consistency across the
-portfolio.
+sections the wizard walks through, in the same order. Mirrors Data-Mapping-ROPA's `ropa/exports.py` export pattern for
+visual/UX consistency across the related tools.
 """
 
 from xml.sax.saxutils import escape as xml_escape

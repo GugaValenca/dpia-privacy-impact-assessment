@@ -3,7 +3,7 @@ Data model for the DPIA-Privacy-Impact-Assessment tool.
 
 A DPIA (Data Protection Impact Assessment) is a forward-looking review: a
 company evaluates a *new* processing activity before it launches, instead
-of documenting one already running (that's Project 2, the ROPA tool). This
+of documenting one already running (that's Data-Mapping-ROPA, the ROPA tool). This
 model follows the same shape most DPIA templates use — describe the
 processing, weigh its necessity and proportionality, identify which risk
 factors apply, document mitigations, and arrive at an overall risk level

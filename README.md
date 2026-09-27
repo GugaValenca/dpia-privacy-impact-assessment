@@ -10,7 +10,7 @@ necessity and proportionality, flagging applicable risk factors, and
 documenting mitigations — ending in a calculated risk score, a
 recommendation, and an exportable, audit-structured PDF report.
 
-Where [Project 2 (Data-Mapping-ROPA)](https://github.com/GugaValenca/data-mapping-ropa)
+Where [Data-Mapping-ROPA](https://github.com/GugaValenca/data-mapping-ropa)
 records processing activities already running, this project assesses a
 new one **before** it launches. Both use the same fictional NimbusCart
 e-commerce company; this one's seeded scenario is NimbusCart proposing an
@@ -64,17 +64,16 @@ time.
 
 - **Backend**: Django (models, admin, session-backed multi-step wizard,
   a small `TypedDict` to keep the dashboard's per-row typing honest) —
-  built with Django, not a marginally leaner alternative, to maintain a
-  consistent stack across this portfolio's four projects
+  built with Django, not a marginally leaner alternative, to keep the same stack as the other three tools
 - **Frontend**: Django templates, plain CSS (light/dark aware, palette
-  shared with Project 2) and no JavaScript — the wizard's state lives on
+  shared with Data-Mapping-ROPA) and no JavaScript — the wizard's state lives on
   the server, so a plain multi-page form is simpler and more defensible
   than reimplementing that state in the browser
 - **PDF generation**: [ReportLab](https://www.reportlab.com/), matching
-  Project 2's export pipeline for consistency across the portfolio
-- **Tests**: Django's built-in test runner, matching Project 2 rather
-  than introducing pytest for a single project in an otherwise
-  consistent portfolio (`python manage.py test dpia`)
+  Data-Mapping-ROPA's export pipeline for consistency across the related tools
+- **Tests**: Django's built-in test runner, matching Data-Mapping-ROPA rather
+  than introducing pytest for a single app in an otherwise consistent
+  set of tools (`python manage.py test dpia`)
 - **Configuration**: `SECRET_KEY` / `DEBUG` / `ALLOWED_HOSTS` read from
   environment variables with dev-only fallbacks (`config/settings.py`,
   `.env.example`) — the codebase is deploy-ready without code changes
@@ -82,7 +81,7 @@ time.
   Postgres in production via `dj-database-url` (SQLite locally, no
   config needed), static files served by
   [WhiteNoise](https://whitenoise.readthedocs.io/) — same setup as
-  Project 2, for one consistent deployment story across the portfolio;
+  Data-Mapping-ROPA, for one consistent deployment story across the related tools;
   see **Deployment** below
 
 ## Data privacy & compliance design — read before treating this as authoritative
@@ -101,7 +100,7 @@ scale for this tool alone.
 
 Every recommendation this tool produces, on screen or in an exported
 PDF, carries the disclaimer: *"This assessment is a simulation for
-portfolio/demonstration purposes and does not constitute legal advice."*
+demonstration purposes and does not constitute legal advice."*
 
 Wherever a real legal citation, threshold, or deadline would normally
 belong, the source carries a
@@ -198,7 +197,7 @@ dpia/                           The DPIA app
   management/commands/
     seed_dpia.py                 Risk factor catalog + one example DPIA for NimbusCart
   templates/dpia/                Dashboard, about, detail, and wizard templates
-static/                          CSS (shared palette with Project 2)
+static/                          CSS (shared palette with Data-Mapping-ROPA)
 .env.example                     Environment variables this app reads (copy to .env)
 ```
 
@@ -214,7 +213,7 @@ static/                          CSS (shared palette with Project 2)
   a request that skips ahead or replays an old step is redirected rather
   than trusted (`_require_step` in `dpia/views.py`).
 - The admin login is rate-limited (5 attempts/minute per IP) against
-  brute force, the same as Project 2.
+  brute force, the same as Data-Mapping-ROPA.
 - There is no admin account bundled with this repo or its seed data —
   `createsuperuser` (step 5 above) is interactive and always asks you to
   set your own username/password.
@@ -230,7 +229,7 @@ The app is set up to deploy on Vercel's Python runtime — `vercel.json` +
 `api/index.py` route every request into the Django WSGI app, and
 `config/settings.py` switches from SQLite to Postgres automatically
 whenever a `DATABASE_URL`/`POSTGRES_URL` is present, with no code
-changes needed between the two — the same setup as Project 2, kept
+changes needed between the two — the same setup as Data-Mapping-ROPA, kept
 deliberately identical so both projects deploy the same way.
 
 Vercel's serverless functions have no persistent disk, which is the one
@@ -278,7 +277,7 @@ law (LGPD, GDPR, CCPA). This project reflects that combination directly:
 a genuine DPIA workflow's judgment calls and risk criteria, modeled as a
 structured, tested Django application rather than a static checklist.
 
-This is **Project 3** of a four-project portfolio:
+This is one of four related privacy tools built around the same fictional company:
 
 1. [LGPD-GDPR-CCPA-Comparative-Analysis](https://github.com/GugaValenca/lgpd-gdpr-ccpa-comparative-analysis) — comparing the underlying legal frameworks side by side.
 2. [Data-Mapping-ROPA](https://github.com/GugaValenca/data-mapping-ropa) — recording processing activities already running.

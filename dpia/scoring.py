@@ -53,7 +53,7 @@ RECOMMENDATIONS: dict[RiskLevel, str] = {
 }
 
 LEGAL_DISCLAIMER = (
-    "This assessment is a simulation for portfolio/demonstration purposes and "
+    "This assessment is a simulation for demonstration purposes and "
     "does not constitute legal advice."
 )
 

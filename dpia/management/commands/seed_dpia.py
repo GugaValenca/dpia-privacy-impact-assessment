@@ -1,6 +1,6 @@
 """Seed the risk factor catalog and one complete example DPIA for
 NimbusCart, the same fictional mid-size e-commerce company used in
-Project 2 (Data-Mapping-ROPA), so the dashboard, wizard, risk scoring,
+Data-Mapping-ROPA, so the dashboard, wizard, risk scoring,
 and PDF export all have something meaningful to show right away.
 
 # TODO: VERIFY exact legal citation against official source.

@@ -1,9 +1,9 @@
 /* Palette, typography, and component tokens deliberately mirror
-   Project 2 (Data-Mapping-ROPA)'s static/css/style.css so this portfolio
-   reads as one coherent system rather than four disconnected exercises.
-   Risk levels reuse the same semantic colors Project 2 uses for
-   ok/sensitive/risk states (low=ok, medium=sensitive, high=risk) instead
-   of inventing a parallel palette for the same concept. */
+   Data-Mapping-ROPA's static/css/style.css so the related tools read as
+   one coherent system rather than four disconnected apps. Risk levels
+   reuse the same semantic colors Data-Mapping-ROPA uses for
+   ok/sensitive/risk states (low=ok, medium=sensitive, high=risk)
+   instead of inventing a parallel palette for the same concept. */
 :root {
     --bg: #f5f6f8;
     --surface: #ffffff;
@@ -390,7 +390,7 @@ a:hover { text-decoration: underline; }
 .review-table th, .review-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 0.85rem; vertical-align: top; }
 .review-table th { color: var(--text-muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; }
 
-/* --- About page (shared with Project 2's about layout) -------------- */
+/* --- About page (shared with Data-Mapping-ROPA's about layout) -------------- */
 
 .about { max-width: 760px; }
 .about h1 { margin-bottom: 20px; }

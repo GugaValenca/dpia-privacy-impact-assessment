@@ -8,6 +8,7 @@ from .models import (
     ProcessingDescription,
     RiskFactor,
 )
+from .throttling import client_ip
 
 admin.site.site_header = "DPIA-Privacy-Impact-Assessment Administration"
 admin.site.site_title = "DPIA Admin"
@@ -15,11 +16,15 @@ admin.site.index_title = "Manage assessments & the risk factor catalog"
 
 # The login form is the one publicly reachable, unauthenticated endpoint
 # in this app, so it's the one worth rate limiting against brute force.
+# Keyed by client_ip rather than django-ratelimit's built-in "ip" key: on
+# Vercel, REMOTE_ADDR is the platform's proxy, not the visitor, so the
+# built-in key would put every visitor's login attempts in one shared
+# budget instead of one budget per visitor (see dpia/throttling.py).
 # mypy sees this as reassigning a method on an instance, which its type
 # model doesn't allow even though Python (and Django's own AdminSite,
 # built to have its attributes overridden this way) allows it fine.
 admin.site.login = ratelimit(  # type: ignore[method-assign]
-    key="ip", rate="5/m", method="POST", block=True
+    key=client_ip, rate="5/m", method="POST", block=True
 )(admin.site.login)
 
 

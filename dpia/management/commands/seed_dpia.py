@@ -12,6 +12,21 @@ agency publication is cited as authority here — see the disclaimer in
 1-3 scale for this simplified model, not a citation to any regulatory
 severity scale.
 
+VERIFIED 2026-10-02 (live web research this session): the nine risk
+factors seeded below are a near-verbatim match to the nine "likely high
+risk" indicator criteria published by the Article 29 Working Party in
+WP248 rev.01 (endorsed by the EDPB), itself interpreting the "likely to
+result in a high risk" language of GDPR Art. 35(1) — confirmed against
+eur-lex.europa.eu and the ICO's public summary of WP248. The CPPA's
+CCPA/CPRA risk-assessment regulations were finalized (OAL approval
+2025-09-23) and are in effect as of 2026-01-01, so "CPRA risk-assessment
+practice" refers to a currently-operative regime. This confirms the
+catalog's structural inspiration is genuine, not invented — it does not
+change the disclaimer that no specific article/section is cited as
+authority for any individual entry, and the TODO above is intentionally
+left in place for anyone wanting to re-derive/re-check the mapping
+themselves.
+
 Run with: python manage.py seed_dpia
 Safe to re-run: it clears existing DPIA data first (--keep to skip that).
 """

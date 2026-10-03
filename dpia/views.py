@@ -9,12 +9,14 @@ That keeps an abandoned wizard, or a reload partway through, from ever
 leaving a half-saved Assessment behind.
 """
 
+from functools import wraps
 from typing import TypedDict
 
 from django.contrib import messages
 from django.db import transaction
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django_ratelimit.decorators import ratelimit
 
 from . import exports
 from .forms import (
@@ -36,8 +38,13 @@ from .scoring import (
     calculate_assessment_risk,
     calculate_risk_score,
 )
+from .throttling import client_ip
 
 SESSION_KEY = "dpia_wizard"
+
+# PDF export is a public, unauthenticated, CPU-expensive request (ReportLab
+# rendering), so it's rate-limited per visitor rather than left unlimited.
+limit_pdf = ratelimit(group="pdf", key=client_ip, rate="10/m", block=True)
 
 
 class AssessmentRiskRow(TypedDict):
@@ -83,6 +90,25 @@ def _require_step(request: HttpRequest, step: int):
     return None
 
 
+def require_step(step: int):
+    """View decorator form of `_require_step`: redirects to the earliest
+    incomplete step instead of calling the wrapped view, if `step` can't
+    be reached yet with whatever's currently in the session. Used on
+    every wizard view but the first, which has nothing to require."""
+
+    def decorator(view_func):
+        @wraps(view_func)
+        def wrapper(request: HttpRequest, *args, **kwargs) -> HttpResponse:
+            guard = _require_step(request, step)
+            if guard:
+                return guard
+            return view_func(request, *args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
 def dashboard(request: HttpRequest) -> HttpResponse:
     assessments = Assessment.objects.all().prefetch_related(
         "risk_factors", "mitigation_measures"
@@ -122,6 +148,7 @@ def assessment_detail(request: HttpRequest, pk: int) -> HttpResponse:
     )
 
 
+@limit_pdf
 def export_pdf(request: HttpRequest, pk: int) -> HttpResponse:
     assessment = get_object_or_404(
         Assessment.objects.select_related(
@@ -145,11 +172,8 @@ def wizard_step1(request: HttpRequest) -> HttpResponse:
     return render(request, "dpia/wizard_step1.html", {"form": form, "step": 1})
 
 
+@require_step(2)
 def wizard_step2(request: HttpRequest) -> HttpResponse:
-    guard = _require_step(request, 2)
-    if guard:
-        return guard
-
     if request.method == "POST":
         form = NecessityProportionalityForm(request.POST)
         if form.is_valid():
@@ -162,11 +186,8 @@ def wizard_step2(request: HttpRequest) -> HttpResponse:
     return render(request, "dpia/wizard_step2.html", {"form": form, "step": 2})
 
 
+@require_step(3)
 def wizard_step3(request: HttpRequest) -> HttpResponse:
-    guard = _require_step(request, 3)
-    if guard:
-        return guard
-
     if request.method == "POST":
         form = RiskFactorSelectionForm(request.POST)
         if form.is_valid():
@@ -184,11 +205,8 @@ def wizard_step3(request: HttpRequest) -> HttpResponse:
     return render(request, "dpia/wizard_step3.html", {"form": form, "step": 3})
 
 
+@require_step(4)
 def wizard_step4(request: HttpRequest) -> HttpResponse:
-    guard = _require_step(request, 4)
-    if guard:
-        return guard
-
     data = _wizard_data(request)
     risk_factors = list(RiskFactor.objects.filter(id__in=data["risk_factor_ids"]))
 
@@ -213,11 +231,8 @@ def wizard_step4(request: HttpRequest) -> HttpResponse:
     )
 
 
+@require_step(5)
 def wizard_step5(request: HttpRequest) -> HttpResponse:
-    guard = _require_step(request, 5)
-    if guard:
-        return guard
-
     data = _wizard_data(request)
     risk_factors = list(RiskFactor.objects.filter(id__in=data["risk_factor_ids"]))
     review_rows = [

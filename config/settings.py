@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,13 +29,30 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # development only — any real deployment should set DJANGO_SECRET_KEY as
 # an actual environment variable with its own generated key. See
 # .env.example.
-SECRET_KEY = os.environ.get(
-    "DJANGO_SECRET_KEY",
-    "django-insecure-dev-only-8x#h3f!q9k2m$w7z@r5t1v6n0y4b_dpia+demo",
+_INSECURE_FALLBACK_SECRET_KEY = (
+    "django-insecure-dev-only-8x#h3f!q9k2m$w7z@r5t1v6n0y4b_dpia+demo"
 )
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", _INSECURE_FALLBACK_SECRET_KEY)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DJANGO_DEBUG", "True") == "True"
+
+# Belt-and-suspenders: `manage.py check --deploy` only *warns* (W009) if
+# SECRET_KEY still looks like an auto-generated/insecure value — it
+# doesn't stop the app from actually starting with it. Since nothing
+# forces an operator to run `check --deploy` before a real deploy, refuse
+# to boot at all if DJANGO_DEBUG=False is set (i.e. this is meant to be a
+# real deployment) but DJANGO_SECRET_KEY was never set, so the insecure
+# fallback above — visible to anyone who reads this file on GitHub — is
+# still active. SECRET_KEY backs CSRF token signing and every other
+# cryptographic signing Django does by default, so a known key undermines
+# all of it in production.
+if not DEBUG and SECRET_KEY == _INSECURE_FALLBACK_SECRET_KEY:
+    raise ImproperlyConfigured(
+        "DJANGO_DEBUG=False but DJANGO_SECRET_KEY is not set, so the "
+        "insecure development fallback key is active. Set DJANGO_SECRET_KEY "
+        "to a real, unique secret (see .env.example) before deploying."
+    )
 
 ALLOWED_HOSTS = [
     h.strip() for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",") if h.strip()
@@ -64,11 +82,16 @@ else:
         if o.strip()
     ]
 
+# Whether this process is running on Vercel at all (preview or
+# production) — used both for the HTTPS-proxy header below and to decide
+# whether dpia/throttling.py can trust X-Real-IP for rate limiting.
+RUNNING_ON_VERCEL = bool(os.environ.get("VERCEL"))
+
 # Vercel (like most serverless/PaaS hosts) terminates TLS at the edge and
 # forwards requests to the app over plain HTTP with this header set —
 # without it Django can't tell the request was actually HTTPS, which
 # breaks CSRF and secure-cookie checks.
-if os.environ.get("VERCEL"):
+if RUNNING_ON_VERCEL:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # Belt-and-suspenders production hardening. Vercel already forces HTTPS
@@ -156,6 +179,26 @@ else:
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": str(BASE_DIR / "db.sqlite3"),
+        }
+    }
+
+
+# Cache — where the rate limits on PDF export and admin login
+# (dpia/views.py, dpia/admin.py) keep their counters. Django's default
+# in-memory cache is per process, and on Vercel every serverless instance
+# is its own process, so each one would count separately and the limits
+# would barely apply. With a real database configured, the counters live
+# in a Postgres table instead, shared by every instance. The table is
+# created by `manage.py createcachetable` (see the README's deployment
+# steps); locally and in tests, no DATABASE_URL means this block is
+# skipped and Django falls back to its default per-process in-memory
+# cache, which is fine since there's only one process to share counters
+# across.
+if _database_url:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+            "LOCATION": "django_cache",
         }
     }
 

@@ -88,6 +88,30 @@ def export_pdf(assessment: Assessment) -> HttpResponse:
         borderPadding=8,
     )
 
+    # Shared styling for the two data tables below (risk factors,
+    # mitigation measures) — same header/grid/zebra-striping look, built
+    # once and reused instead of repeating the same TableStyle twice.
+    table_style = TableStyle(  # type: ignore[arg-type]
+        [
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1F2A44")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#CCCCCC")),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            (
+                "ROWBACKGROUNDS",
+                (0, 1),
+                (-1, -1),
+                [colors.white, colors.HexColor("#F5F6F8")],
+            ),
+        ]
+    )
+
+    def _section_table(headers: list[str], body_rows: list[list], col_widths: list[float]):
+        header_row = [_p(h, field_label_style) for h in headers]
+        table = Table([header_row, *body_rows], colWidths=col_widths, repeatRows=1)
+        table.setStyle(table_style)
+        return table
+
     processing = assessment.processing_description
     necessity = assessment.necessity_proportionality
     risk = calculate_assessment_risk(assessment)
@@ -135,34 +159,21 @@ def export_pdf(assessment: Assessment) -> HttpResponse:
     elements.append(Paragraph("3. Risk Factors", section_style))
     risk_factors = list(assessment.risk_factors.all())
     if risk_factors:
-        header = [_p(h, field_label_style) for h in ["Risk factor", "Severity", "Description"]]
-        rows = [header]
-        for factor in risk_factors:
-            rows.append(
-                [
-                    _p(factor.name, body_style),
-                    _p(str(factor.severity_weight), body_style),
-                    _p(factor.description, body_style),
-                ]
-            )
-        table = Table(rows, colWidths=[1.8 * inch, 0.8 * inch, 3.8 * inch], repeatRows=1)
-        table.setStyle(
-            TableStyle(  # type: ignore[arg-type]
-                [
-                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1F2A44")),
-                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                    ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#CCCCCC")),
-                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                    (
-                        "ROWBACKGROUNDS",
-                        (0, 1),
-                        (-1, -1),
-                        [colors.white, colors.HexColor("#F5F6F8")],
-                    ),
-                ]
+        rows = [
+            [
+                _p(factor.name, body_style),
+                _p(str(factor.severity_weight), body_style),
+                _p(factor.description, body_style),
+            ]
+            for factor in risk_factors
+        ]
+        elements.append(
+            _section_table(
+                ["Risk factor", "Severity", "Description"],
+                rows,
+                [1.8 * inch, 0.8 * inch, 3.8 * inch],
             )
         )
-        elements.append(table)
     else:
         elements.append(
             _p("No risk factors were identified for this processing activity.", body_style)
@@ -171,34 +182,21 @@ def export_pdf(assessment: Assessment) -> HttpResponse:
     elements.append(Paragraph("4. Mitigation Measures", section_style))
     mitigations = list(assessment.mitigation_measures.all())
     if mitigations:
-        header = [_p(h, field_label_style) for h in ["Risk factor", "Mitigation", "Impact"]]
-        rows = [header]
-        for mitigation in mitigations:
-            rows.append(
-                [
-                    _p(mitigation.risk_factor.name, body_style),
-                    _p(mitigation.description, body_style),
-                    _p(f"-{mitigation.reduction_weight}", body_style),
-                ]
-            )
-        table = Table(rows, colWidths=[1.8 * inch, 3.8 * inch, 0.8 * inch], repeatRows=1)
-        table.setStyle(
-            TableStyle(  # type: ignore[arg-type]
-                [
-                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1F2A44")),
-                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                    ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#CCCCCC")),
-                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                    (
-                        "ROWBACKGROUNDS",
-                        (0, 1),
-                        (-1, -1),
-                        [colors.white, colors.HexColor("#F5F6F8")],
-                    ),
-                ]
+        rows = [
+            [
+                _p(mitigation.risk_factor.name, body_style),
+                _p(mitigation.description, body_style),
+                _p(f"-{mitigation.reduction_weight}", body_style),
+            ]
+            for mitigation in mitigations
+        ]
+        elements.append(
+            _section_table(
+                ["Risk factor", "Mitigation", "Impact"],
+                rows,
+                [1.8 * inch, 3.8 * inch, 0.8 * inch],
             )
         )
-        elements.append(table)
     else:
         elements.append(_p("No mitigation measures were documented.", body_style))
 

@@ -115,6 +115,18 @@ here for anyone auditing this repo:
 | `dpia/models.py` (`RiskFactor` docstring) | The risk factor catalog's relationship to any specific regulatory "likely high risk" checklist (e.g. GDPR Art. 35 guidance) — currently described as "loosely follows the shape of," not cited to a specific provision. |
 | `dpia/management/commands/seed_dpia.py` (module docstring) | Same catalog, at the point it's actually seeded into the database. |
 
+**Verified 2026-10-02** (live web research, not from training data): the
+nine-entry structure genuinely matches the Article 29 Working Party's
+WP248 rev.01 "likely high risk" criteria (endorsed by the EDPB,
+interpreting GDPR Art. 35(1) — confirmed against eur-lex.europa.eu and
+ico.org.uk's public summary), and the CPPA's CCPA/CPRA risk-assessment
+regulations are finalized and in force as of 2026-01-01 (OAL approval
+2025-09-23). This confirms the characterization above is accurate, not
+overstated — the catalog still doesn't cite any specific article, section,
+or agency publication as authority for an individual entry, and that
+remains the deliberate design, not an unresolved gap. See the verification
+comments added at each location above for sources.
+
 All company, project, and scenario details in the seed data (NimbusCart,
 the AI recommendation engine proposal) are fictional, invented for this
 demonstration.
@@ -206,14 +218,22 @@ static/                          CSS (shared palette with Data-Mapping-ROPA)
 - `SECRET_KEY`, `DEBUG`, and `ALLOWED_HOSTS` are read from environment
   variables (`DJANGO_SECRET_KEY`, `DJANGO_DEBUG`, `DJANGO_ALLOWED_HOSTS`)
   with dev-only fallbacks — see `config/settings.py` and `.env.example`.
-  Never commit a real `.env` file (it's already git-ignored).
+  Never commit a real `.env` file (it's already git-ignored). Because this
+  repo is public, the fallback key is public too, so the app **refuses to
+  start** with `DJANGO_DEBUG=False` unless `DJANGO_SECRET_KEY` is set,
+  rather than silently serving production traffic signed with it.
 - CSRF protection is on for every form, including all 5 wizard steps.
 - The wizard's session data is only ever read back by server-side view
   code and validated through the same Django forms used on submission —
   a request that skips ahead or replays an old step is redirected rather
   than trusted (`_require_step` in `dpia/views.py`).
-- The admin login is rate-limited (5 attempts/minute per IP) against
-  brute force, the same as Data-Mapping-ROPA.
+- PDF export and the admin login both accept requests from anonymous
+  visitors, so each is rate-limited per visitor (`dpia/views.py`,
+  `dpia/admin.py`) — 10/min for PDF export (ReportLab rendering isn't
+  free), 5/min for admin login attempts. The limiter key trusts Vercel's
+  `X-Real-IP` header only when actually running on Vercel
+  (`RUNNING_ON_VERCEL`, `dpia/throttling.py`); elsewhere a client could
+  set that header to anything, so `REMOTE_ADDR` is used instead.
 - There is no admin account bundled with this repo or its seed data —
   `createsuperuser` (step 5 above) is interactive and always asks you to
   set your own username/password.
@@ -258,6 +278,7 @@ no extra handling needed for that beyond having Postgres configured.
    this for you):
    ```bash
    DATABASE_URL="<value from Vercel's Storage tab>" python manage.py migrate
+   DATABASE_URL="<same value>" python manage.py createcachetable   # rate-limit counters
    DATABASE_URL="<same value>" python manage.py seed_dpia   # optional, sample data
    DATABASE_URL="<same value>" python manage.py createsuperuser
    ```

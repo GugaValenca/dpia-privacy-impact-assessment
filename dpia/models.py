@@ -20,6 +20,25 @@ citation, threshold, or deadline would need to be sourced from an actual
 statute or regulator guidance, see the
 `# TODO: VERIFY exact legal citation against official source` comments
 below and in `dpia/management/commands/seed_dpia.py`.
+
+VERIFIED 2026-10-02 (live web research this session, not from training
+data): the "GDPR Art. 35 guidance" reference below is to the Article 29
+Working Party's "Guidelines on Data Protection Impact Assessment"
+(WP248 rev.01), endorsed by the EDPB, which really does list nine
+criteria as indicators that processing is "likely to result in a high
+risk" — language drawn directly from GDPR Art. 35(1) itself
+(eur-lex.europa.eu/eli/reg/2016/679/oj). Cross-checked against the ICO's
+published summary of WP248 (ico.org.uk, "When do we need to do a
+DPIA?"). Separately, the CPPA's finalized CCPA/CPRA risk-assessment
+regulations were approved by the CA Office of Administrative Law on
+2025-09-23 and took effect 2026-01-01 (per contemporaneous legal-industry
+reporting, e.g. Skadden and Freeman Mathis & Gary client alerts) — so
+"CPRA risk-assessment practice" is a live, in-force regulatory regime as
+of this verification, not a proposal. Neither check changes the
+disclaimer above: this model still does not cite any specific article,
+section, or agency publication as authority for its scoring — it only
+confirms the *structural* resemblance claimed is genuine rather than
+invented.
 """
 
 from django.db import models
@@ -35,13 +54,29 @@ class RiskFactor(models.Model):
     risk level. Weights are an internal 1-3 scale for this simplified
     model, not a citation to any specific regulatory severity scale.
 
-    # TODO: VERIFY exact legal citation against official source — this
-    # catalog's shape loosely follows well-known DPIA screening criteria
-    # (e.g. WP29-style "likely high risk" indicators referenced in GDPR
-    # Art. 35 guidance), but no specific article, section, or agency
-    # publication is cited as authority here. Verify against
-    # eur-lex.europa.eu / oag.ca.gov / planalto.gov.br before using this
-    # catalog to represent an actual regulatory checklist.
+    # This catalog's shape loosely follows well-known DPIA screening
+    # criteria (e.g. WP29-style "likely high risk" indicators referenced
+    # in GDPR Art. 35 guidance), but no specific article, section, or
+    # agency publication is cited as authority here.
+    #
+    # VERIFIED 2026-10-02 via live web research against eur-lex.europa.eu
+    # (GDPR Art. 35(1) text) and the ICO's published summary of the WP29
+    # "WP248 rev.01" DPIA guidelines (endorsed by the EDPB): the real
+    # WP248 nine-criteria list is "evaluation or scoring", "automated
+    # decision-making with legal or similarly significant effect",
+    # "systematic monitoring", "sensitive data or data of a highly
+    # personal nature", "large-scale processing", "matching or combining
+    # datasets", "data concerning vulnerable data subjects", "innovative
+    # use or new technology", and "processing that prevents data subjects
+    # from exercising a right or using a service or contract" — this is
+    # genuinely a near-verbatim match to the nine entries seeded below, so
+    # "loosely follows the shape of" is, if anything, an understatement of
+    # the structural resemblance, not an overstatement. It remains true
+    # that no specific article/section number is cited as legal authority
+    # for any individual entry below — that framing is accurate and
+    # intentionally left as-is; see `oag.ca.gov` / `planalto.gov.br` for
+    # the CCPA/LGPD side of this catalog's inspiration, not yet
+    # individually re-verified in this pass.
     """
 
     name = models.CharField(max_length=200, unique=True)
